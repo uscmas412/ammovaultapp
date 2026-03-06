@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ammo Vault — Encrypted Ammunition Inventory for iOS</title>
+<meta name="description" content="Ammo Vault is a secure, offline ammunition inventory tracker for iPhone. AES-256 encrypted. Track ammo, reloading supplies, and range sessions.">
+<meta name="theme-color" content="#0C0C0E">
+<meta property="og:title" content="Ammo Vault — Encrypted Ammo Inventory">
+<meta property="og:description" content="Track your ammunition inventory with military-grade encryption. Offline, private, built for shooters and reloaders.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Libre+Franklin:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brass: #C5A55A;
+  --brass-dark: #A8893D;
+  --brass-dim: #8B7232;
+  --brass-glow: #D4B973;
+  --bg: #0C0C0E;
+  --surface: #141417;
+  --surface2: #1A1A1E;
+  --text: #F0EDE6;
+  --text2: #B0ADA6;
+  --text3: #6B6963;
+  --green: #4CAF50;
+  --red: #FF5252;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Libre Franklin', -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+
+a { color: var(--brass); text-decoration: none; }
+a:hover { color: var(--brass-glow); }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(12,12,14,0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(197,165,90,0.08);
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 900; font-size: 17px; letter-spacing: -0.3px;
+}
+.nav-shield {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--brass), var(--brass-dark));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  font-size: 13px; font-weight: 600; color: var(--text3);
+  transition: color 0.2s; letter-spacing: 0.3px;
+}
+.nav-links a:hover { color: var(--brass); }
+.nav-cta {
+  font-size: 12px !important; font-weight: 700 !important;
+  color: var(--bg) !important; background: var(--brass);
+  padding: 8px 18px; border-radius: 8px;
+  transition: background 0.2s, transform 0.1s;
+}
+.nav-cta:hover { background: var(--brass-glow) !important; transform: translateY(-1px); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 120px 24px 80px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -40%; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 800px;
+  background: radial-gradient(circle, rgba(197,165,90,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-content { max-width: 680px; position: relative; z-index: 1; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--brass); letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 6px 16px; border: 1px solid rgba(197,165,90,0.2);
+  border-radius: 20px; margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+.hero-badge::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--green); border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+.hero h1 {
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 900; line-height: 1.05; letter-spacing: -2px;
+  margin-bottom: 24px; animation: fadeUp 0.6s ease 0.1s both;
+}
+.hero h1 .brass { color: var(--brass); }
+.hero-sub {
+  font-size: 18px; color: var(--text2); line-height: 1.7;
+  max-width: 520px; margin: 0 auto 40px;
+  animation: fadeUp 0.6s ease 0.2s both;
+}
+.hero-actions {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 0.6s ease 0.3s both;
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 16px 32px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--brass), var(--brass-dark));
+  color: var(--bg); font-weight: 800; font-size: 15px;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(197,165,90,0.25);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(197,165,90,0.35); color: var(--bg); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 16px 32px; border-radius: 12px;
+  border: 1px solid rgba(197,165,90,0.25);
+  color: var(--brass); font-weight: 700; font-size: 15px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover { background: rgba(197,165,90,0.06); border-color: var(--brass); }
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+/* CALIBER STRIP */
+.caliber-strip {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  padding: 40px 24px; max-width: 1080px; margin: 0 auto;
+}
+.caliber-chip {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--brass-dim); padding: 8px 16px;
+  border: 1px solid rgba(197,165,90,0.12); border-radius: 8px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.caliber-chip:hover { border-color: var(--brass); color: var(--brass); }
+
+/* SECTIONS */
+.section { max-width: 1080px; margin: 0 auto; padding: 100px 24px; }
+.section-label {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--brass); letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 900;
+  letter-spacing: -1px; margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 16px; color: var(--text2); line-height: 1.7;
+  max-width: 560px; margin-bottom: 48px;
+}
+
+/* FEATURES */
+.features-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
+}
+.feature-card {
+  padding: 28px; background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.04); border-radius: 16px;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.feature-card:hover { border-color: rgba(197,165,90,0.15); transform: translateY(-2px); }
+.feature-icon {
+  width: 44px; height: 44px; background: rgba(197,165,90,0.1);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 18px;
+}
+.feature-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.feature-card p { font-size: 14px; color: var(--text3); line-height: 1.65; }
+
+/* SECURITY */
+.security-section {
+  background: var(--surface);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+.security-visual { display: flex; flex-direction: column; gap: 12px; }
+.sec-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; background: var(--bg);
+  border: 1px solid rgba(197,165,90,0.08); border-radius: 10px;
+  font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text2);
+}
+.sec-bar .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sec-bar .dot.green { background: var(--green); }
+.sec-bar .dot.brass { background: var(--brass); }
+
+/* PRIVACY */
+.privacy-section { border-top: 1px solid rgba(255,255,255,0.04); }
+.privacy-content { max-width: 680px; }
+.privacy-content h3 {
+  font-size: 16px; font-weight: 800; margin: 28px 0 10px; color: var(--text);
+}
+.privacy-content p {
+  font-size: 14px; color: var(--text2); line-height: 1.75; margin-bottom: 12px;
+}
+
+/* SUPPORT */
+.support-section {
+  background: var(--surface);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.support-box {
+  max-width: 560px; padding: 40px; background: var(--bg);
+  border: 1px solid rgba(197,165,90,0.1); border-radius: 20px; text-align: center;
+}
+.support-box h3 { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+.support-box p { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 24px; }
+.support-email {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--brass);
+  padding: 14px 28px; border: 1px solid rgba(197,165,90,0.25); border-radius: 10px;
+  transition: background 0.2s;
+}
+.support-email:hover { background: rgba(197,165,90,0.06); }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 40px 24px; text-align: center;
+}
+footer p { font-size: 12px; color: var(--text3); line-height: 2; }
+footer a { color: var(--text3); }
+footer a:hover { color: var(--brass); }
+
+@media (max-width: 768px) {
+  .nav-links a:not(.nav-cta) { display: none; }
+  .security-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .hero h1 { letter-spacing: -1px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-shield">&#x1F6E1;</div>
+      Ammo Vault
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#security">Security</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#support">Support</a>
+      <a href="https://testflight.apple.com/join/Vh7rarw1" class="nav-cta" target="_blank">Join Beta</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Beta Available on TestFlight</div>
+    <h1>Your ammo inventory,<br><span class="brass">encrypted.</span></h1>
+    <p class="hero-sub">Track ammunition, reloading supplies, and range sessions with AES-256 encryption. Offline. Private. Built for shooters and reloaders.</p>
+    <div class="hero-actions">
+      <a href="https://testflight.apple.com/join/Vh7rarw1" class="btn-primary" target="_blank">&#63743; Download Beta</a>
+      <a href="#features" class="btn-secondary">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<div class="caliber-strip">
+  <span class="caliber-chip">5.56 NATO</span>
+  <span class="caliber-chip">9mm</span>
+  <span class="caliber-chip">.45 ACP</span>
+  <span class="caliber-chip">.22 LR</span>
+  <span class="caliber-chip">6.5 PRC</span>
+  <span class="caliber-chip">30-30 Win</span>
+  <span class="caliber-chip">.300 Blackout</span>
+  <span class="caliber-chip">6.5 Creedmoor</span>
+  <span class="caliber-chip">30-06 Sprg</span>
+  <span class="caliber-chip">12 Gauge</span>
+</div>
+
+<section class="section" id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Everything you need.<br>Nothing you don't.</h2>
+  <p class="section-sub">Purpose-built for shooters who want a fast, private way to track what they have on hand.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F3AF;</div>
+      <h3>Ammunition Tracking</h3>
+      <p>Log rounds by caliber, grain weight, and factory/reload status. Quick +/&minus; buttons for single rounds, or tap the count to enter bulk amounts. Notes field on every entry for brand, lot number, or load data.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x2699;</div>
+      <h3>Reloading Supplies</h3>
+      <p>Track primers, powder, brass, and bullets separately. Categorize by caliber or primer size. Perfect for reloaders managing components across multiple cartridges.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F52B;</div>
+      <h3>Range Day Mode</h3>
+      <p>Dedicated screen to log an entire shooting session. Enter rounds fired per ammo type across all calibers, review the total, and submit &mdash; one tap logs everything and updates your inventory.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F514;</div>
+      <h3>Low Stock Alerts</h3>
+      <p>Set custom thresholds for any caliber or reloading supply. Get a local notification when inventory drops below your limit. Never show up to the range short again.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F512;</div>
+      <h3>Face ID &amp; Touch ID</h3>
+      <p>Unlock your vault with biometrics. The encryption key lives in the iOS Secure Enclave behind biometric protection &mdash; your passphrase is never stored on disk.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F4CB;</div>
+      <h3>Activity Log</h3>
+      <p>Full audit trail of every add, subtract, delete, range day, and supply change with timestamps. See exactly what changed and when.</p>
+    </div>
+  </div>
+</section>
+
+<section class="security-section" id="security">
+  <div class="section" style="padding-bottom:80px;">
+    <div class="security-grid">
+      <div>
+        <div class="section-label">Security</div>
+        <h2 class="section-title">Military-grade<br>encryption.</h2>
+        <p class="section-sub" style="margin-bottom:24px;">Your inventory data is encrypted with AES-256-GCM via Apple's CryptoKit framework &mdash; the same standard used to protect classified government information. Every byte is encrypted before it touches disk.</p>
+        <p class="section-sub">Your passphrase is salted with 256 random bits stored in the iOS Keychain, then derived through SHA-256 to produce the encryption key. No data ever leaves your device. No accounts. No cloud. No telemetry.</p>
+      </div>
+      <div class="security-visual">
+        <div class="sec-bar"><span class="dot green"></span> AES-256-GCM Encryption</div>
+        <div class="sec-bar"><span class="dot green"></span> SHA-256 Key Derivation</div>
+        <div class="sec-bar"><span class="dot green"></span> iOS Keychain / Secure Enclave</div>
+        <div class="sec-bar"><span class="dot green"></span> Face ID / Touch ID Support</div>
+        <div class="sec-bar"><span class="dot brass"></span> 100% On-Device Storage</div>
+        <div class="sec-bar"><span class="dot brass"></span> Zero Network Requests</div>
+        <div class="sec-bar"><span class="dot brass"></span> No Accounts or Telemetry</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section privacy-section" id="privacy">
+  <div class="section-label">Privacy Policy</div>
+  <h2 class="section-title">Your data stays yours.</h2>
+  <div class="privacy-content">
+    <p><strong>Effective Date:</strong> March 2026</p>
+    <h3>Data Collection</h3>
+    <p>Ammo Vault collects no personal data whatsoever. The app does not require an account, does not connect to the internet, and does not transmit any data to any server, third party, or analytics service.</p>
+    <h3>Data Storage</h3>
+    <p>All inventory data is stored exclusively on your device in an AES-256-GCM encrypted file. The encryption key is derived from your passphrase using a unique 256-bit salt stored in the iOS Keychain. No data is stored in iCloud, on remote servers, or anywhere outside your device.</p>
+    <h3>Biometric Data</h3>
+    <p>When Face ID or Touch ID is enabled, the app uses Apple's LocalAuthentication framework to authenticate access to the derived encryption key stored in the iOS Keychain. Ammo Vault never accesses, processes, or stores biometric data directly. All biometric operations are handled entirely by the iOS operating system.</p>
+    <h3>Third-Party Services</h3>
+    <p>Ammo Vault uses no third-party SDKs, analytics tools, crash reporters, ad networks, or tracking services of any kind.</p>
+    <h3>Notifications</h3>
+    <p>The app may request permission to send local notifications for low-stock alerts. These notifications are generated and delivered entirely on-device. No notification data is transmitted externally.</p>
+    <h3>Data Deletion</h3>
+    <p>Deleting the app permanently removes all stored data, including the encrypted vault file and all Keychain entries. There is no backup or recovery mechanism.</p>
+    <h3>Children's Privacy</h3>
+    <p>Ammo Vault is not directed at children under 17 and does not knowingly collect information from minors.</p>
+    <h3>Changes to This Policy</h3>
+    <p>Any updates to this privacy policy will be reflected on this page with an updated effective date.</p>
+    <h3>Contact</h3>
+    <p>For questions about this privacy policy, contact <a href="mailto:ammovaultapp@gmail.com">ammovaultapp@gmail.com</a>.</p>
+  </div>
+</section>
+
+<section class="support-section" id="support">
+  <div class="section" style="display:flex;justify-content:center;">
+    <div class="support-box">
+      <h3>Need Help?</h3>
+      <p>Found a bug, have a feature request, or need help with the app? We'd love to hear from you.</p>
+      <a href="mailto:ammovaultapp@gmail.com" class="support-email">&#x2709; ammovaultapp@gmail.com</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    &copy; 2026 Ammo Vault. All rights reserved.<br>
+    <a href="#privacy">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="#support">Support</a> &nbsp;&middot;&nbsp; <a href="https://testflight.apple.com/join/Vh7rarw1" target="_blank">TestFlight Beta</a>
+  </p>
+</footer>
+
+</body>
+</html>
